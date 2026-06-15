@@ -6,7 +6,6 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-// Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
 struct FInputActionValue;
 
 UCLASS()
@@ -24,17 +23,14 @@ protected:
 	UCameraComponent* CameraComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float NormalSpeed; // 기본 걷기 속도
+	float NormalSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float SprintSpeedMultiplier;  // "기본 속도" 대비 몇 배로 빠르게 달릴지 결정
+	float SprintSpeedMultiplier;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed;
 
-	// 입력 바인딩을 처리할 함수
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// IA_Move와 IA_Jump 등을 처리할 함수 원형
-// Enhanced Input에서 액션 값은 FInputActionValue로 전달됩니다.
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
 	UFUNCTION()

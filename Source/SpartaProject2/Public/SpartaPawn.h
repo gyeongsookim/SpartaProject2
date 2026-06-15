@@ -12,7 +12,6 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 
-// ⭐ 캐릭터의 상태를 정의하는 열거형 추가
 UENUM(BlueprintType)
 enum class EPawnMovementState : uint8
 {
@@ -32,7 +31,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// 컴포넌트 리스트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCapsuleComponent* CapsuleComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -42,7 +40,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
 
-	// Enhanced Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* InputMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -54,7 +51,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* RollAction;   
 
-	// 이동 제어 세팅 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GroundMaxSpeed;       
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -62,13 +58,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float RotationSpeed;        
 
-	// 중력 및 지면 감지 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Gravity")
 	float CustomGravity;        
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Gravity")
 	float TraceDistance;        
 
-	// ─── [내부 상태 연산용 변수] ───
 	FVector2D MoveInput;
 	FVector2D LookInput;
 	float UpDownInput;
@@ -77,7 +71,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
 	FVector CurrentVelocity;     
 
-	// ⭐ 기존 bool 스위치 대신 열거형 상태 변수로 대체관리
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
 	EPawnMovementState CurrentMovementState;
 
@@ -86,11 +79,9 @@ protected:
 
 	float VerticalVelocity;      
 
-	// ⭐ 더블 점프(비행 전환) 감지용 타이밍 변수들
-	float LastJumpTime;          // 마지막으로 스페이스바를 누른 절대 시간
-	float DoubleTapThreshold;    // 더블 탭 인정 시간 범위 (예: 0.25초)
+	float LastJumpTime;
+	float DoubleTapThreshold;
 
-	// 입력 처리 함수
 	void OnMove(const FInputActionValue& Value);
 	void OnLook(const FInputActionValue& Value);
 	void OnJumpStarted(const FInputActionValue& Value);
