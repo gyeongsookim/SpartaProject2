@@ -12,6 +12,15 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 
+// ⭐ 캐릭터의 상태를 정의하는 열거형 추가
+UENUM(BlueprintType)
+enum class EPawnMovementState : uint8
+{
+	GroundWalking   UMETA(DisplayName = "Ground Walking"),
+	NormalJumping   UMETA(DisplayName = "Normal Jumping"),
+	Flying          UMETA(DisplayName = "Flying")
+};
+
 UCLASS()
 class SPARTAPROJECT2_API ASpartaPawn : public APawn
 {
@@ -23,87 +32,73 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// ─── [컴포넌트 리스트] ───
+	// 컴포넌트 리스트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCapsuleComponent* CapsuleComp;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
 
-	// ─── [Enhanced Input 에셋 매핑 변수] ───
+	// Enhanced Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* InputMappingContext;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* MoveAction;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* LookAction;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* UpDownAction; // ⭐ 도전: 상하 고도 조절 및 지상 점프/스프린트 통합 액션
-
+	UInputAction* UpDownAction; 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* RollAction;   // ⭐ 도전: 6자유도 Roll 회전 액션
+	UInputAction* RollAction;   
 
-	// ─── [이동 및 회전 제어 변수] ───
+	// 이동 제어 세팅 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GroundMaxSpeed;       // 지상 기본 최고 속도
-
+	float GroundMaxSpeed;       
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float AirControlRatio;      // ⭐ 도전: 공중 상태 이동 속도 제한 비율 (0.3 ~ 0.5)
-
+	float AirControlRatio;      
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float RotationSpeed;        // 마우스 및 키보드 회전 속도
+	float RotationSpeed;        
 
-	// ─── [중력 및 지면 감지 변수] ───
+	// 중력 및 지면 감지 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Gravity")
-	float CustomGravity;        // ⭐ 도전: 인공 중력 가속도 (-980.0f)
-
+	float CustomGravity;        
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Gravity")
-	float TraceDistance;        // ⭐ 도전: LineTrace 지면 충돌 감지 레이저 거리
+	float TraceDistance;        
 
-	// ─── [내부 상태 연산용 변수 (매크로 추가 완료)] ───
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
+	// ─── [내부 상태 연산용 변수] ───
 	FVector2D MoveInput;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
 	FVector2D LookInput;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
 	float UpDownInput;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
 	float RollInput;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
-	FVector CurrentVelocity;     // ⭐ ABP가 실시간으로 읽어갈 실제 물리 속도 벡터
+	FVector CurrentVelocity;     
+
+	// ⭐ 기존 bool 스위치 대신 열거형 상태 변수로 대체관리
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
+	EPawnMovementState CurrentMovementState;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
-	bool bIsSprinting;           // 지상 달리기 작동 여부 스위치
+	bool bIsSprinting;           
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
-	bool bIsPawnFalling;         // ⭐ 지상/공중 로직 분기를 위한 핵심 상태 스위치
+	float VerticalVelocity;      
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Internal")
-	float VerticalVelocity;      // Z축 전용 실시간 하방 가속도 데이터
+	// ⭐ 더블 점프(비행 전환) 감지용 타이밍 변수들
+	float LastJumpTime;          // 마지막으로 스페이스바를 누른 절대 시간
+	float DoubleTapThreshold;    // 더블 탭 인정 시간 범위 (예: 0.25초)
 
-	// ─── [입력 바인딩 처리 함수] ───
+	// 입력 처리 함수
 	void OnMove(const FInputActionValue& Value);
 	void OnLook(const FInputActionValue& Value);
-	void OnUpDown(const FInputActionValue& Value); // ⭐ 추가
-	void OnRoll(const FInputActionValue& Value);   // ⭐ 추가
+	void OnJumpStarted(const FInputActionValue& Value);
+	void OnUpDownMovement(const FInputActionValue& Value);
+	void OnRoll(const FInputActionValue& Value);   
 
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// ⭐ 애니메이션 블루프린트(ABP)가 GetVelocity 노드를 쓸 때 프레임 속도를 반환하는 오버라이드 함수
 	virtual FVector GetVelocity() const override;
 };
